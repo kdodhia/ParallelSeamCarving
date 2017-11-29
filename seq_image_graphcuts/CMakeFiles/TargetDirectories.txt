@@ -1,0 +1,3 @@
+/Users/kevan/Desktop/seam-carving/image-graph-cuts/CMakeFiles/rebuild_cache.dir
+/Users/kevan/Desktop/seam-carving/image-graph-cuts/CMakeFiles/edit_cache.dir
+/Users/kevan/Desktop/seam-carving/image-graph-cuts/CMakeFiles/ImageRetarget.dir
