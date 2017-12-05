@@ -84,9 +84,6 @@ Mat reduce() {
 
 /*
  * Remove seam from the image.
- *
- * image: image to be seam-removed
- * seam: column index of each row
  */
 Mat remove_seam(Mat image, int seam[])
 {
@@ -107,9 +104,6 @@ Mat remove_seam(Mat image, int seam[])
 
 /*
  * Remove seam from the gray image.
- *
- * GrayImage: gray image to be seam-removed
- * seam: column index of each row
  */
 Mat remove_seam_gray(Mat GrayImage, int seam[])
 {
@@ -129,8 +123,6 @@ Mat remove_seam_gray(Mat GrayImage, int seam[])
 
 /*
  * Find the seam of minimum energy according to our improved graph cut algorithm
- *
- * grayImg1: current image needed to be seam-removed
  */
 int *find_seam(Mat grayImg1)
 {
@@ -225,9 +217,6 @@ int *find_seam(Mat grayImg1)
 
 /*
  * Remove one vertical seam from img.
- * 
- * grayImg1: used to calculate the seam
- * img: image needed to perform seam-cut
  */
 Mat reduce_vertical(Mat &grayImg1, Mat img) {
     int rows = grayImg1.rows;
@@ -241,9 +230,6 @@ Mat reduce_vertical(Mat &grayImg1, Mat img) {
 
 /*
  * Remove one horizontal seam from img.
- *
- * grayImg1: used to calculate the seam
- * img: image needed to perform seam-cut
  */
 Mat reduce_horizontal(Mat &grayImg1, Mat img) {
     int rows = grayImg1.rows;
@@ -257,8 +243,6 @@ Mat reduce_horizontal(Mat &grayImg1, Mat img) {
 
 /*
  * Seam-cut to the frame1.
- *
- * frame1: the frame to be seam-cut
  * v: number of vertical seams to be removed
  * h: number of horizontal seams to be removed
  */
