@@ -16,6 +16,7 @@ static int _argc;
 static const char **_argv;
 
 typedef unsigned long long timestamp_t;
+extern void  png_to_text(const char *filename);
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols);
 void reduce_image(uint8_t *image, int seam_count, int rows, int cols);
 void calculate_ACM(int *energy, int rows, int cols);
@@ -111,7 +112,7 @@ int main(int argc, const char *argv[])
   
   printf("Number of threads: %d\n", num_of_threads);
 
-  const char *txt_filename = "image_rgb.txt"
+  const char *txt_filename = "image_rgb.txt";
 
   FILE *input = fopen(txt_filename, "r");
 
