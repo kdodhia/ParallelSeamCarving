@@ -8,6 +8,11 @@ int main(int argc, const char *argv[])
 {
     const char *imageName = "outputImg.txt";
     FILE *inputImageFile = fopen(imageName, "r");
+
+    if (!inputImageFile) {
+        printf("Unable to open file: %s.\n", inputImageFile);
+        return -1;
+    }
     int width, height;
     fscanf(inputImageFile, "%d %d\n", width, height);
 
@@ -16,12 +21,12 @@ int main(int argc, const char *argv[])
     uint8_t *r = (uint8_t *)calloc(width * height, sizeof(uint8_t));
     uint8_t *g = (uint8_t *)calloc(width * height, sizeof(uint8_t));
     uint8_t *b = (uint8_t *)calloc(width * height, sizeof(uint8_t));
-    int rval, gval, bval;
+    uint8_t rval, gval, bval;
     int i = 0;
-    while (fscanf(inputImageFile, "%d %d %d\n", &rval, &gval, &bval) != EOF) {
-      r[i] = (uint8_t)rval;
-      g[i] = (uint8_t)gval;
-      b[i] = (uint8_t)bval;
+    while (fscanf(inputImageFile, "%d %d %d\n", rval, gval, bval) != EOF) {
+      r[i] = rval;
+      g[i] = gval;
+      b[i] = bval;
       i++;
     }
 
@@ -78,6 +83,7 @@ int main(int argc, const char *argv[])
           png_write_row(png, (png_bytep)rowBytes);
      }
 
-     png_write_end(png, NULL);
+    fclose(fp);
+    fclose(inputImageFile);
      return 0;
 }
