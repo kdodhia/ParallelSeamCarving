@@ -156,7 +156,7 @@ void find_seam(int *energy, int *seam, int rows, int cols)
  */
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
-    cout << "Generating ACM" << endl;
+    cout << "removing seam" << endl;
 
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
@@ -202,14 +202,9 @@ void calculate_ACM(int *energy, int rows, int cols) {
 
 
 
-void reduce_image(uint8_t *reducedImg, int v, int rows, int cols) {
+void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, int cols) {
 
-    int min = 0, diff = 0;
-
-    int *energy = (int *)calloc(cols * rows, sizeof(int));
-    int *seam = (int *)calloc(rows, sizeof(int));
-
-    for(int i = 0; i < v; ++i) {
+   for(int i = 0; i < v; i++) {
         /*
          * Remove one vertical seam from img. The algorithm:
         1) get energy matrix.
@@ -228,7 +223,6 @@ void reduce_image(uint8_t *reducedImg, int v, int rows, int cols) {
 
         cols--;
     }
-
 }
 
 int main(int argc, const char *argv[])
@@ -288,7 +282,9 @@ int main(int argc, const char *argv[])
   int img_size = rows * cols * 3;
 
   uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
-  (void)image;
+  //(void)image;
+  int *energy = (int *)calloc(cols * rows, sizeof(int));
+  int *seam = (int *)calloc(rows, sizeof(int));
  
   uint8_t r, g, b;
   int index = 0;
@@ -311,7 +307,9 @@ int main(int argc, const char *argv[])
    * Xeon Phi.
    */
 #pragma offload target(mic) \
-  inout(image: length(img_size) INOUT)
+  inout(image: length(img_size) INOUT) \
+  inout(energy: length(rows * cols) INOUT) \
+  inout(seam: length(rows) INOUT) 
 #endif
   {
     /* Implement the wire routing algorithm here
@@ -321,7 +319,7 @@ int main(int argc, const char *argv[])
      * You should really implement as much of this (if not all of it) in
      * helper functions. */
      //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
-    //reduce_image(image, seam_count, rows, cols);
+    reduce_image(image, energy, seam, seam_count, rows, cols);
   }
 
   compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
@@ -338,13 +336,16 @@ int main(int argc, const char *argv[])
     printf("Error: couldn't output image file");
     return -1;
   }
-
+  int new_width = width - seam_count;
   // output information here
-  /*
-  for (int i = 0; i < img_size; i++){
-    fprintf(outFile, "%d");
+  fprintf(outputImageFile,"%d %d\n", new_width, height);
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < new_width; col++) {
+      int index = row * new_width + col;
+      int index3 = index * 3;
+      fprintf(outputImageFile,"%d %d %d\n", image[index3], image[index3+1], image[index3+2]);
+    }
   }
-  */
 
   free(image);
   fclose(outFile);
