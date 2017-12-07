@@ -62,127 +62,6 @@ static void show_help(const char *program_path)
     printf("\t-n <num_threads>\n");
 }
 
-int main(int argc, const char *argv[])
-{
-  using namespace std::chrono;
-  typedef std::chrono::high_resolution_clock Clock;
-  typedef std::chrono::duration<double> dsec;
-
-  auto init_start = Clock::now();
-  double init_time = 0;
- 
-  _argc = argc - 1;
-  _argv = argv + 1;
-
-  /* You'll want to use these parameters in your algorithm */
-  const char *input_filename = get_option_string("-f", NULL);
-  int rows = get_option_int("-w", -1);
-  int cols = get_option_int("-h", -1);
-  int seam_count = get_option_int("-s", -1);
-  int num_of_threads = get_option_int("-n", 1);
-  int error = 0;
-
-  if (input_filename == NULL) {
-    printf("Error: You need to specify -f.\n");
-    error = 1;
-  }
-
-  if (cols == -1) {
-    printf("Error: You need to specify -w.\n");
-    error = 1;
-  }
-
-  if (rows == -1) {
-    printf("Error: You need to specify -h.\n");
-    error = 1;
-  }
-
-  if (seam_count == -1) {
-    printf("Error: You need to specify -s.\n");
-    error = 1;
-  }
-
-  if (error) {
-    show_help(argv[0]);
-    return 1;
-  }
-
-  printf("Number of threads: %d\n", num_of_threads);
-
-  FILE *input = fopen(input_filename, "r");
-
-  if (!input) {
-    printf("Unable to open file: %s.\n", input_filename);
-    return -1;
-  }
-
-  int img_size = rows * cols * 3;
-
-  uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
-  (void)image;
- 
-  uint8_t r, g, b;
-  int index = 0;
-  while (fscanf(input, "%d %d %d\n", &r, &g, &b) != EOF) {
-    /* PARSE THE INPUT FILE HERE */
-    image[index] = r;
-    image[index] = g;
-    image[index] = b;
-    index++;
-  }
-
-  init_time += duration_cast<dsec>(Clock::now() - init_start).count();
-  printf("Initialization Time: %lf.\n", init_time);
-  auto compute_start = Clock::now();
-  double compute_time = 0;
-
-#ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
-
-  /* This pragma means we want the code in the following block be executed in 
-   * Xeon Phi.
-   */
-#pragma offload target(mic) \
-  inout(image: length(img_size) INOUT)
-#endif
-  {
-    /* Implement the wire routing algorithm here
-     * Feel free to structure the algorithm into different functions
-     * Don't use global variables.
-     * Use OpenMP to parallelize the algorithm. 
-     * You should really implement as much of this (if not all of it) in
-     * helper functions. */
-     //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
-    reduce_image(image, seam_count, rows, cols);
-  }
-
-  compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
-  printf("Computation Time: %lf.\n", compute_time);
-  printf("Total time: %1f.\n", compute_time + init_time);
-  
-  /* OUTPUT YOUR RESULTS TO FILES HERE 
-   * When you're ready to output your data to files, uncommment this chunk of
-   * code and fill in the specified blanks indicated by comments. More about
-   * this in the README. */  
-
-  FILE *outFile = fopen("outputImg.txt", "w");
-  if (!outFile) {
-    printf("Error: couldn't output image file");
-    return -1;
-  }
-
-  // output information here
-  /*
-  for (int i = 0; i < img_size; i++){
-    fprintf(outFile, "%d");
-  }
-  */
-
-  free(image);
-  fclose(outFile);
-
-  return 0;
-}
-
 
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
@@ -350,4 +229,125 @@ void reduce_image(uint8_t *reducedImg, int v, int rows, int cols) {
         cols--;
     }
 
+}
+
+int main(int argc, const char *argv[])
+{
+  using namespace std::chrono;
+  typedef std::chrono::high_resolution_clock Clock;
+  typedef std::chrono::duration<double> dsec;
+
+  auto init_start = Clock::now();
+  double init_time = 0;
+ 
+  _argc = argc - 1;
+  _argv = argv + 1;
+
+  /* You'll want to use these parameters in your algorithm */
+  const char *input_filename = get_option_string("-f", NULL);
+  int rows = get_option_int("-w", -1);
+  int cols = get_option_int("-h", -1);
+  int seam_count = get_option_int("-s", -1);
+  int num_of_threads = get_option_int("-n", 1);
+  int error = 0;
+
+  if (input_filename == NULL) {
+    printf("Error: You need to specify -f.\n");
+    error = 1;
+  }
+
+  if (cols == -1) {
+    printf("Error: You need to specify -w.\n");
+    error = 1;
+  }
+
+  if (rows == -1) {
+    printf("Error: You need to specify -h.\n");
+    error = 1;
+  }
+
+  if (seam_count == -1) {
+    printf("Error: You need to specify -s.\n");
+    error = 1;
+  }
+
+  if (error) {
+    show_help(argv[0]);
+    return 1;
+  }
+
+  printf("Number of threads: %d\n", num_of_threads);
+
+  FILE *input = fopen(input_filename, "r");
+
+  if (!input) {
+    printf("Unable to open file: %s.\n", input_filename);
+    return -1;
+  }
+
+  int img_size = rows * cols * 3;
+
+  uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
+  (void)image;
+ 
+  uint8_t r, g, b;
+  int index = 0;
+  while (fscanf(input, "%d %d %d\n", &r, &g, &b) != EOF) {
+    /* PARSE THE INPUT FILE HERE */
+    image[index] = r;
+    image[index] = g;
+    image[index] = b;
+    index++;
+  }
+
+  init_time += duration_cast<dsec>(Clock::now() - init_start).count();
+  printf("Initialization Time: %lf.\n", init_time);
+  auto compute_start = Clock::now();
+  double compute_time = 0;
+
+#ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
+
+  /* This pragma means we want the code in the following block be executed in 
+   * Xeon Phi.
+   */
+#pragma offload target(mic) \
+  inout(image: length(img_size) INOUT)
+#endif
+  {
+    /* Implement the wire routing algorithm here
+     * Feel free to structure the algorithm into different functions
+     * Don't use global variables.
+     * Use OpenMP to parallelize the algorithm. 
+     * You should really implement as much of this (if not all of it) in
+     * helper functions. */
+     //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
+    //reduce_image(image, seam_count, rows, cols);
+  }
+
+  compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+  printf("Computation Time: %lf.\n", compute_time);
+  printf("Total time: %1f.\n", compute_time + init_time);
+  
+  /* OUTPUT YOUR RESULTS TO FILES HERE 
+   * When you're ready to output your data to files, uncommment this chunk of
+   * code and fill in the specified blanks indicated by comments. More about
+   * this in the README. */  
+
+  FILE *outFile = fopen("outputImg.txt", "w");
+  if (!outFile) {
+    printf("Error: couldn't output image file");
+    return -1;
+  }
+
+  // output information here
+  /*
+  for (int i = 0; i < img_size; i++){
+    fprintf(outFile, "%d");
+  }
+  */
+
+  free(image);
+  fclose(outFile);
+
+  return 0;
 }
