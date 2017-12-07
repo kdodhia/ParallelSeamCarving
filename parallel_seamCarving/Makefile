@@ -6,7 +6,7 @@ default: $(APP_NAME)
 
 # Compile for Xeon Phi
 $(APP_NAME): CXX = icc -m64 -std=c++11
-$(APP_NAME): CXXFLAGS = -I. -O3 -Wall -openmp -offload-attribute-target=mic -DRUN_MIC
+$(APP_NAME): CXXFLAGS = -I. -O3 -Wall -openmp -offload-attribute-target=mic -DRUN_MIC -no-multibyte-chars
 
 # Compile for CPU
 cpu: CXX = g++ -m64 -std=c++11
