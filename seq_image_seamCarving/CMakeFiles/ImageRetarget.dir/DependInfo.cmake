@@ -4,7 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving.cpp" "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o"
+  "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.cpp" "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o"
+  "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving_entropy.cpp" "/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "Clang")
 

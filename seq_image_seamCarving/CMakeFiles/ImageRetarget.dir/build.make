@@ -57,38 +57,64 @@ include CMakeFiles/ImageRetarget.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/ImageRetarget.dir/flags.make
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o: CMakeFiles/ImageRetarget.dir/flags.make
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o: seamCarving.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o -c /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving.cpp
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o: CMakeFiles/ImageRetarget.dir/flags.make
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o: seamCarving_entropy.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o -c /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving_entropy.cpp
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ImageRetarget.dir/seamCarving.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving.cpp > CMakeFiles/ImageRetarget.dir/seamCarving.cpp.i
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving_entropy.cpp > CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.i
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ImageRetarget.dir/seamCarving.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving.cpp -o CMakeFiles/ImageRetarget.dir/seamCarving.cpp.s
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving_entropy.cpp -o CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.s
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.requires:
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.requires:
 
-.PHONY : CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.requires
+.PHONY : CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.requires
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.provides: CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.requires
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.provides.build
-.PHONY : CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.provides
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.provides: CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.requires
+	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.provides.build
+.PHONY : CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.provides
 
-CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.provides.build: CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o
+CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.provides.build: CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o
+
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o: CMakeFiles/ImageRetarget.dir/flags.make
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o: compute_energy_entropy.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o -c /Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.cpp
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.cpp > CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.i
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.cpp -o CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.s
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.requires:
+
+.PHONY : CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.requires
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.provides: CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.requires
+	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.provides.build
+.PHONY : CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.provides
+
+CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.provides.build: CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o
 
 
 # Object files for target ImageRetarget
 ImageRetarget_OBJECTS = \
-"CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o"
+"CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o" \
+"CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o"
 
 # External object files for target ImageRetarget
 ImageRetarget_EXTERNAL_OBJECTS =
 
-ImageRetarget: CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o
+ImageRetarget: CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o
+ImageRetarget: CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o
 ImageRetarget: CMakeFiles/ImageRetarget.dir/build.make
 ImageRetarget: /usr/local/lib/libopencv_calib3d.a
 ImageRetarget: /usr/local/lib/libopencv_core.a
@@ -129,7 +155,7 @@ ImageRetarget: /usr/local/share/OpenCV/3rdparty/lib/libzlib.a
 ImageRetarget: /usr/local/share/OpenCV/3rdparty/lib/libippiw.a
 ImageRetarget: /usr/local/share/OpenCV/3rdparty/lib/libippicv.a
 ImageRetarget: CMakeFiles/ImageRetarget.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable ImageRetarget"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/kevan/Desktop/15418_project/seq_image_seamCarving/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable ImageRetarget"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ImageRetarget.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -137,7 +163,8 @@ CMakeFiles/ImageRetarget.dir/build: ImageRetarget
 
 .PHONY : CMakeFiles/ImageRetarget.dir/build
 
-CMakeFiles/ImageRetarget.dir/requires: CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o.requires
+CMakeFiles/ImageRetarget.dir/requires: CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o.requires
+CMakeFiles/ImageRetarget.dir/requires: CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o.requires
 
 .PHONY : CMakeFiles/ImageRetarget.dir/requires
 

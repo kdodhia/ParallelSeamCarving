@@ -6,7 +6,29 @@
 
 #IncludeRegexTransform: 
 
-/Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving.cpp
+/Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.cpp
+math.h
+-
+set
+-
+iterator
+-
+algorithm
+-
+compute_energy_entropy.h
+/Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.h
+opencv/cv.h
+-
+opencv2/imgproc/imgproc.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+sys/time.h
+-
+
+/Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.h
+
+/Users/kevan/Desktop/15418_project/seq_image_seamCarving/seamCarving_entropy.cpp
 iostream
 -
 stdio.h
@@ -31,6 +53,8 @@ opencv2/highgui/highgui.hpp
 -
 sys/time.h
 -
+compute_energy_entropy.h
+/Users/kevan/Desktop/15418_project/seq_image_seamCarving/compute_energy_entropy.h
 
 /usr/local/include/opencv/cv.h
 opencv2/core/core_c.h
