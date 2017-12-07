@@ -97,7 +97,7 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
                 int gdy = abs(gUp - gDown);
                 int bdy = abs(bUp - bDown);
 
-                int energy_val = rdx + gdx + bdx + rdy + gdy + bdy;
+                energy_val = rdx + gdx + bdx + rdy + gdy + bdy;
             }
             energy[row * cols + col] = energy_val;
         }
