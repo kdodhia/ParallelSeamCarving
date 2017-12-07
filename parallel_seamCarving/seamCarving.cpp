@@ -111,16 +111,17 @@ int main(int argc, const char *argv[])
     show_help(argv[0]);
     return 1;
   }
+
+  png_to_text(input_filename);
   
   printf("Number of threads: %d\n", num_of_threads);
-  //printf("Probability parameter for simulated annealing: %lf.\n", SA_prob);
-  //printf("Number of simulated anneling iterations: %d\n", SA_iters);
-  //printf("Input file: %s\n", input_filename);
 
-  FILE *input = fopen(input_filename, "r");
+  const char *txt_filename = "image_rgb.txt"
+
+  FILE *input = fopen(txt_filename, "r");
 
   if (!input) {
-    printf("Unable to open file: %s.\n", input_filename);
+    printf("Unable to open file: %s.\n", txt_filename);
     return -1;
   }
 
@@ -193,45 +194,6 @@ int main(int argc, const char *argv[])
   return 0;
 }
 
-/*
-int main(int argc, char* argv[]) {
-    cout << "Program started" << endl;
-    timestamp_t t0 = get_timestamp();
-
-    int ver = 0;
-    int hor = 0;
-
-    string inFile = "image.jpg";
-    if(argc == 4) {
-        string inFile = argv[1];
-        ver = atoi(argv[2]);
-        hor = atoi(argv[3]);
-    }
-    else {
-        return -1;
-    }
-
-    Mat image = imread(inFile, CV_LOAD_IMAGE_COLOR); 
-    if(!image.data){
-        cerr << "Unable to open input file." << endl;
-        return -1;
-    }
-
-    cout << "Number of cols before: " << image.cols << endl;
-
-    string::size_type pAt = inFile.find_last_of('.');   // Find extension point
-    const string outFile = inFile.substr(0, pAt) + "-result.jpg";
-    Mat outImage = reduce_image(image, ver, hor);
-    imwrite(outFile, outImage);
-
-    timestamp_t t1 = get_timestamp();
-    double secs = (t1 - t0) / 1000000.0L;
-    cout << "Total runtime: " << secs << "secs" << endl;
-    cout << "Number of cols after: " << outImage.cols << endl;
-
-    return 0;
-}
-*/
 
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
