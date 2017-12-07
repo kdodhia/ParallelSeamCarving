@@ -6,7 +6,6 @@
 #include <cstring>
 #include <omp.h>
 #include "mic.h"
-#include "png_to_txt.h"
 
 #define GET_INDEX(x,y,w) (x * w + y)*3
 
@@ -108,16 +107,12 @@ int main(int argc, const char *argv[])
     return 1;
   }
 
-  png_to_text(input_filename);
-  
   printf("Number of threads: %d\n", num_of_threads);
 
-  const char *txt_filename = "image_rgb.txt";
-
-  FILE *input = fopen(txt_filename, "r");
+  FILE *input = fopen(input_filename, "r");
 
   if (!input) {
-    printf("Unable to open file: %s.\n", txt_filename);
+    printf("Unable to open file: %s.\n", input_filename);
     return -1;
   }
 

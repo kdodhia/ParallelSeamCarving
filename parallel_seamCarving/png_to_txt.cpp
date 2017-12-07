@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <png.h>
 #include <stdint.h>
-#include "png_to_txt.h"
 
 
-void png_to_text(const char *filename)
+int main(int argc, const char *argv[])
 {
+  const char *filename = "image.png"
   FILE *outputImageFile = fopen("image_rgb.txt", "w");
   if (!outputImageFile) return -1;
 
