@@ -336,14 +336,14 @@ int main(int argc, const char *argv[])
     printf("Error: couldn't output image file");
     return -1;
   }
-  int new_width = width - seam_count;
+  int new_width = cols - seam_count;
   // output information here
-  fprintf(outputImageFile,"%d %d\n", new_width, height);
+  fprintf(outFile,"%d %d\n", new_width, rows);
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < new_width; col++) {
       int index = row * new_width + col;
       int index3 = index * 3;
-      fprintf(outputImageFile,"%d %d %d\n", image[index3], image[index3+1], image[index3+2]);
+      fprintf(outFile,"%d %d %d\n", image[index3], image[index3+1], image[index3+2]);
     }
   }
 
