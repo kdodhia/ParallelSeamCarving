@@ -239,8 +239,8 @@ int main(int argc, const char *argv[])
 
   /* You'll want to use these parameters in your algorithm */
   const char *input_filename = get_option_string("-f", NULL);
-  int rows = get_option_int("-w", -1);
-  int cols = get_option_int("-h", -1);
+  int cols = get_option_int("-w", -1);
+  int rows = get_option_int("-h", -1);
   int seam_count = get_option_int("-s", -1);
   int num_of_threads = get_option_int("-n", 1);
   int error = 0;
