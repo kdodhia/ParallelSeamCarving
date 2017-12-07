@@ -13,20 +13,22 @@ int main(int argc, const char *argv[])
         printf("Unable to open file: %s.\n", inputImageFile);
         return -1;
     }
-    int width, height;
-    fscanf(inputImageFile, "%d %d\n", width, height);
 
+    int width, height;
+
+    fscanf(inputImageFile, "%d %d\n", &width, &height);
     printf("Width: %d Height: %d\n", width, height);
+
 
     uint8_t *r = (uint8_t *)calloc(width * height, sizeof(uint8_t));
     uint8_t *g = (uint8_t *)calloc(width * height, sizeof(uint8_t));
     uint8_t *b = (uint8_t *)calloc(width * height, sizeof(uint8_t));
-    uint8_t rval, gval, bval;
+    int rval, gval, bval;
     int i = 0;
-    while (fscanf(inputImageFile, "%d %d %d\n", rval, gval, bval) != EOF) {
-      r[i] = rval;
-      g[i] = gval;
-      b[i] = bval;
+    while (fscanf(inputImageFile, "%d %d %d\n", &rval, &gval, &bval) != EOF) {
+      r[i] = (uint8_t)rval;
+      g[i] = (uint8_t)gval;
+      b[i] = (uint8_t)bval;
       i++;
     }
 

@@ -68,10 +68,10 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
     cout << "generating energy matrix" << endl;
     
     for(int col = 0; col < cols; col++){
-        for(int row = 1; row < rows; row++){
+        for(int row = 0; row < rows; row++){
             int energy_val;
             
-            if (row == rows || col == cols || (col - 1) < 0 || (col + 1) > 0){
+            if (row == rows - 1|| col == cols - 1 || col == 0 || row = 0){
                 energy_val = 1;
             } else {
 
