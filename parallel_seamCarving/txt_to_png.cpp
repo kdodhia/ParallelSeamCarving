@@ -33,20 +33,20 @@ int main(int argc, const char *argv[])
      fp = fopen("output.png", "wb");
      if (fp == NULL) {
           printf("Error writing PNG image\n");
-          return;
+          return -1;
      }
 
 
      png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
      if (png == NULL) {
           printf("Error writing PNG image\n");
-          return;
+          return -1;
      }
 
      info = png_create_info_struct(png);
      if (info == NULL) {
           printf("Error writing PNG image\n");
-          return;
+          return -1;
      }
 
      png_init_io(png, fp);
@@ -68,8 +68,8 @@ int main(int argc, const char *argv[])
 
      rowBytes = (png_byte*)malloc(3 * width * sizeof(png_byte));
 
-     for (int row = 0; row < image.height; row++) {
-          for (int col = 0; col < image.width; col++) {
+     for (int row = 0; row < height; row++) {
+          for (int col = 0; col < width; col++) {
                // int colIndex = col * 3;
                rowBytes[(col * 3)]   = (png_byte)r[(width * row) + col];
                rowBytes[(col * 3) + 1] = (png_byte)g[(width * row) + col];
@@ -79,4 +79,5 @@ int main(int argc, const char *argv[])
      }
 
      png_write_end(png, NULL);
+     return 0;
 }
