@@ -6,14 +6,9 @@
 #include <cstring>
 #include <omp.h>
 #include "mic.h"
+#include "png_to_txt.h"
 
 #define GET_INDEX(x,y,w) (x * w + y)*3
-
-
-//#include <opencv/cv.h>
-//#include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <sys/time.h>
 
 using namespace std;
 
@@ -128,9 +123,7 @@ int main(int argc, const char *argv[])
   int img_size = rows * cols * 3;
 
   uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
-  //uint8_t *reducedImg = (uint8_t *)calloc(img_size, sizeof(uint8_t));
   (void)image;
-  //(void)reducedImg;
  
   uint8_t r, g, b;
   int index = 0;
@@ -198,7 +191,6 @@ int main(int argc, const char *argv[])
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
     cout << "generating energy matrix" << endl;
-    //timestamp_t t0 = get_timestamp();
     
     for(int col = 0; col < cols; col++){
         for(int row = 1; row < rows; row++){
@@ -235,15 +227,11 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
             energy[row * cols + col] = energy_val;
         }
     }
-    //timestamp_t t1 = get_timestamp();
-    //double secs = (t1 - t0) / 1000000.0L;
-    //cout << "Energy matrix generation time: " << secs << "secs" << endl;
 }
 
 void find_seam(int *energy, int *seam, int rows, int cols)
 {
     cout << "finding seam" << endl;
-    //timestamp_t t0 = get_timestamp();
     
     int  min_val = -1;
     int min_col = -1;
@@ -286,9 +274,6 @@ void find_seam(int *energy, int *seam, int rows, int cols)
     }
     seam[row] = cur_col;
 
-    //timestamp_t t1 = get_timestamp();
-    //double secs = (t1 - t0) / 1000000.0L;
-    //cout << "Seam generation time: " << secs << "secs" << endl;
 }
 
 /*
@@ -297,12 +282,7 @@ void find_seam(int *energy, int *seam, int rows, int cols)
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
     cout << "Generating ACM" << endl;
-    //timestamp_t t0 = get_timestamp();
 
-    /*
-    Mat reducedImage(rows,cols-1,CV_8UC3, Scalar(0, 0, 0));
-    Mat reducedImageGrey(rows,cols-1,CV_8UC1);
-    */
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
         for (int col = 0; col < cols; col++) {
@@ -321,16 +301,11 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
             }
         }
     }
-
-    //timestamp_t t1 = get_timestamp();
-    //double secs = (t1 - t0) / 1000000.0L;
-    //cout << "ACM generation time: " << secs << "secs" << endl;
 }
 
 void calculate_ACM(int *energy, int rows, int cols) {
         
     cout << "Generating ACM" << endl;
-    //timestamp_t t0 = get_timestamp();
 
     for (int row = 2; row < rows; row++) {
         for (int col = 1; col < cols; col++) {
@@ -348,23 +323,13 @@ void calculate_ACM(int *energy, int rows, int cols) {
             }
         }
     }
-    //timestamp_t t1 = get_timestamp();
-    //double secs = (t1 - t0) / 1000000.0L;
-    //cout << "ACM generation time: " << secs << "secs" << endl;
 }
 
 
 
 void reduce_image(uint8_t *reducedImg, int v, int rows, int cols) {
 
-    //Mat grayImg1;
-    //cvtColor(image, grayImg1, CV_RGB2GRAY);
-
     int min = 0, diff = 0;
-    //Mat reducedGrayImg1, reducedImg;
-    //grayImg1.copyTo(reducedGrayImg1);
-    
-    //image.copyTo(reducedImg);
 
     int *energy = (int *)calloc(cols * rows, sizeof(int));
     int *seam = (int *)calloc(rows, sizeof(int));
