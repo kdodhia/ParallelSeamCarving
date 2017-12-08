@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -72,7 +73,7 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
             int energy_val;
             
             if (row == rows - 1|| col == cols - 1 || col == 0 || row == 0){
-                energy_val = 1;
+                energy_val = 10000000;
             } else {
 
                 int rUp = image[GET_INDEX(row - 1, col, cols)];
@@ -119,11 +120,14 @@ void find_seam(int *energy, int *seam, int rows, int cols)
             min_col = col;
         }
     }
-
+    ofstream myfile;
+    myfile.open ("seam.txt");
     int cur_col = min_col;
     int row;
     for (row = rows-1; row > 0; row--) {
         seam[row] = cur_col;
+        myfile << cur_col << "\n";
+        
         int  upleft, upright;
         if (cur_col > 1) {
             upleft = energy[(row-1) * cols + (cur_col-1)];
@@ -148,12 +152,14 @@ void find_seam(int *energy, int *seam, int rows, int cols)
         }
     }
     seam[row] = cur_col;
-
+    myfile.close();
 }
+
 
 /*
  * Remove seam from the image.
  */
+/*
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
     cout << "removing seam" << endl;
@@ -173,6 +179,29 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
                 outImage[index3] = outImage[index3];
                 outImage[index3 + 1] = outImage[index3 + 1];
                 outImage[index3 + 2] = outImage[index3 + 2];
+            }
+        }
+    }
+}
+*/
+
+
+/*
+ * Remove seam from the image.
+ */
+void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
+{
+    cout << "removing seam" << endl;
+
+    for (int row = 0; row < rows; row++) {
+        int col_to_remove = seam[row];
+        for (int col = 0; col < cols; col++) {
+            int index = row * cols + col;
+            int index3 = index * 3;
+            if (col > col_to_remove) {
+                outImage[index3] = 255;
+                outImage[index3 + 1] = 0;
+                outImage[index3 + 2] = 0;
             }
         }
     }
@@ -219,9 +248,9 @@ void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, 
 
         find_seam(energy, seam, rows, cols);
 
-        remove_seam(reducedImg, seam, rows, cols);
+        //remove_seam(reducedImg, seam, rows, cols);
 
-        cols--;
+        //cols--;
     }
 }
 
@@ -290,10 +319,9 @@ int main(int argc, const char *argv[])
   int index = 0;
   while (fscanf(input, "%d %d %d\n", &r, &g, &b) != EOF) {
     /* PARSE THE INPUT FILE HERE */
-    image[index] = r;
-    image[index] = g;
-    image[index] = b;
-    index++;
+    image[index++] = r;
+    image[index++] = g;
+    image[index++] = b;
   }
 
   init_time += duration_cast<dsec>(Clock::now() - init_start).count();
@@ -319,9 +347,9 @@ int main(int argc, const char *argv[])
      * You should really implement as much of this (if not all of it) in
      * helper functions. */
      //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
-    reduce_image(image, energy, seam, seam_count, rows, cols);
+    //reduce_image(image, energy, seam, seam_count, rows, cols);
   }
-
+  reduce_image(image, energy, seam, seam_count, rows, cols);
   compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
   printf("Computation Time: %lf.\n", compute_time);
   printf("Total time: %1f.\n", compute_time + init_time);
@@ -336,14 +364,14 @@ int main(int argc, const char *argv[])
     printf("Error: couldn't output image file");
     return -1;
   }
-  int new_width = cols - seam_count;
+  int new_width = cols; //- seam_count;
   // output information here
   fprintf(outFile,"%d %d\n", new_width, rows);
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < new_width; col++) {
       int index = row * new_width + col;
       int index3 = index * 3;
-      fprintf(outFile,"%d %d %d\n", image[index3], image[index3+1], image[index3+2]);
+      fprintf(outFile,"%d %d %d\n", (int)image[index3], (int)image[index3+1], (int)image[index3+2]);
     }
   }
 
