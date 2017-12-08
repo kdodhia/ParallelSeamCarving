@@ -15,7 +15,10 @@ using namespace std;
 static int _argc;
 static const char **_argv;
 
-typedef unsigned long long timestamp_t;
+using namespace std::chrono;
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::duration<double> dsec;
+
 extern void  png_to_text(const char *filename);
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols);
 void reduce_image(uint8_t *image, int seam_count, int rows, int cols);
@@ -66,7 +69,10 @@ static void show_help(const char *program_path)
 
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
-    cout << "generating energy matrix" << endl;
+    
+    auto compute_start = Clock::now();
+    double compute_time = 0;
+
     int inf = 10000;
     
     for(int col = 0; col < cols; col++){
@@ -104,11 +110,14 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
             energy[row * cols + col] = energy_val;
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Energy calculation Time: %lf.\n", compute_time);
 }
 
 void find_seam(int *energy, int *seam, int rows, int cols)
 {
-    cout << "finding seam" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
     
     int  min_val = -1;
     int min_col = -1;
@@ -152,6 +161,9 @@ void find_seam(int *energy, int *seam, int rows, int cols)
         }
     }
     seam[row] = cur_col;
+
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam finding Time: %lf.\n", compute_time);
 }
 
 
@@ -161,7 +173,8 @@ void find_seam(int *energy, int *seam, int rows, int cols)
 
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
-    cout << "removing seam" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
@@ -191,18 +204,19 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
             }
         }
     }
+
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam removal Time: %lf.\n", compute_time);
 }
 
 
 
 /*
- * Remove seam from the image.
+ * Draw seam on the image.
  */
 /*
-void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
+void draw_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
-    cout << "removing seam" << endl;
-
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
         for (int col = 0; col < cols; col++) {
@@ -220,24 +234,36 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 
 void calculate_ACM(int *energy, int rows, int cols) {
         
-    cout << "Generating ACM" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     for (int row = 2; row < rows; row++) {
+
         for (int col = 1; col < cols; col++) {
+
             int up = energy[(row-1) * cols + col];
+
             if (col == 1) {
+
                 int upright = energy[(row-1) * cols + (col+1)];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, upright);
+
             } else if (col == cols - 2){
+
                 int upleft = energy[(row-1) * cols + col-1];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, upleft);
+
             } else {
+
                 int upright = energy[(row-1) * cols + (col+1)];
                 int upleft = energy[(row-1) * cols + (col-1)];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, min(upleft, upright));
+
             }
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("ACM generation Time: %lf.\n", compute_time);
 }
 
 
@@ -267,10 +293,6 @@ void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, 
 
 int main(int argc, const char *argv[])
 {
-  using namespace std::chrono;
-  typedef std::chrono::high_resolution_clock Clock;
-  typedef std::chrono::duration<double> dsec;
-
   auto init_start = Clock::now();
   double init_time = 0;
  
