@@ -70,6 +70,8 @@ static void show_help(const char *program_path)
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
     
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     int inf = 10000;
     
@@ -108,11 +110,15 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
             energy[row * cols + col] = energy_val;
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Energy calculation Time: %lf.\n", compute_time);
 }
 
 void find_seam(int *energy, int *seam, int rows, int cols)
 {
-
+    auto compute_start = Clock::now();
+    double compute_time = 0;
+    
     int  min_val = -1;
     int min_col = -1;
     int inf = 100000;
@@ -155,6 +161,9 @@ void find_seam(int *energy, int *seam, int rows, int cols)
         }
     }
     seam[row] = cur_col;
+
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam finding Time: %lf.\n", compute_time);
 }
 
 
@@ -164,6 +173,8 @@ void find_seam(int *energy, int *seam, int rows, int cols)
 
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
@@ -193,6 +204,9 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
             }
         }
     }
+
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam removal Time: %lf.\n", compute_time);
 }
 
 
@@ -220,6 +234,8 @@ void draw_seam(uint8_t *outImage, int *seam, int rows, int cols)
 
 void calculate_ACM(int *energy, int rows, int cols) {
         
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     for (int row = 2; row < rows; row++) {
 
@@ -246,18 +262,14 @@ void calculate_ACM(int *energy, int rows, int cols) {
             }
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("ACM generation Time: %lf.\n", compute_time);
 }
 
 
 
 void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, int cols) {
 
-
-   double energy_compute_time = 0;
-   double ACM_compute_time = 0;
-   double seam_finding_time = 0;
-   double seam_removal_time = 0;
-   
    for(int i = 0; i < v; i++) {
         /*
          * Remove one vertical seam from img. The algorithm:
@@ -267,29 +279,16 @@ void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, 
         4) remove this seam from the image
          */
 
-        auto now = Clock::now();    
         calculate_energy(reducedImg, energy, rows, cols);
-        energy_compute_time += duration_cast<dsec>(Clock::now() - now).count();
 
-        now = Clock::now();
         calculate_ACM(energy, rows, cols);
-        ACM_compute_time += duration_cast<dsec>(Clock::now() - now).count();
 
-        now = Clock::now();
         find_seam(energy, seam, rows, cols);
-        seam_finding_time += duration_cast<dsec>(Clock::now() - now).count();
 
-        now = Clock::now();
         remove_seam(reducedImg, seam, rows, cols);
-        seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
 
         cols--;
     }
-
-    printf("Total energy calculation Time: %lf.\n", energy_compute_time);
-    printf("Total ACM generation Time: %lf.\n", ACM_compute_time);
-    printf("Total seam finding Time: %lf.\n", seam_finding_time);
-    printf("Total seam removal Time: %lf.\n", seam_removal_time);
 }
 
 int main(int argc, const char *argv[])
