@@ -323,6 +323,9 @@ int main(int argc, const char *argv[])
     return 1;
   }
 
+  // Set our thread count.
+  omp_set_num_threads(num_of_threads);
+
   printf("Number of threads: %d\n", num_of_threads);
 
   FILE *input = fopen(input_filename, "r");
