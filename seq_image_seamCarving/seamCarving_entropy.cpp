@@ -1,3 +1,5 @@
+// THIS CODE DOES NOT WORK!
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,7 +114,7 @@ void find_seam(float *energy, int *seam, int rows, int cols)
     int min_col = -1;
     int inf = 100000;
 
-    for (int col = 0; col < cols-1; col++) {
+    for (int col = 1; col < cols-1; col++) {
         float cur = energy[(rows-1) * cols + col];
         if (cur < min_val || min_col == -1 ) {
             min_val = cur;
