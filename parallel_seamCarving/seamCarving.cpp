@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -14,7 +15,10 @@ using namespace std;
 static int _argc;
 static const char **_argv;
 
-typedef unsigned long long timestamp_t;
+using namespace std::chrono;
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::duration<double> dsec;
+
 extern void  png_to_text(const char *filename);
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols);
 void reduce_image(uint8_t *image, int seam_count, int rows, int cols);
@@ -65,14 +69,18 @@ static void show_help(const char *program_path)
 
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
-    cout << "generating energy matrix" << endl;
+    
+    auto compute_start = Clock::now();
+    double compute_time = 0;
+
+    int inf = 10000;
     
     for(int col = 0; col < cols; col++){
         for(int row = 0; row < rows; row++){
             int energy_val;
             
             if (row == rows - 1|| col == cols - 1 || col == 0 || row == 0){
-                energy_val = 1;
+                energy_val = inf;
             } else {
 
                 int rUp = image[GET_INDEX(row - 1, col, cols)];
@@ -102,17 +110,20 @@ void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
             energy[row * cols + col] = energy_val;
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Energy calculation Time: %lf.\n", compute_time);
 }
 
 void find_seam(int *energy, int *seam, int rows, int cols)
 {
-    cout << "finding seam" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
     
     int  min_val = -1;
     int min_col = -1;
     int inf = 100000;
 
-    for (int col = 0; col < cols-1; col++) {
+    for (int col = 1; col < cols-1; col++) {
         int cur = energy[(rows-1) * cols + col];
         if (cur < min_val || min_col == -1 ) {
             min_val = cur;
@@ -122,8 +133,10 @@ void find_seam(int *energy, int *seam, int rows, int cols)
 
     int cur_col = min_col;
     int row;
+
     for (row = rows-1; row > 0; row--) {
         seam[row] = cur_col;
+        
         int  upleft, upright;
         if (cur_col > 1) {
             upleft = energy[(row-1) * cols + (cur_col-1)];
@@ -149,55 +162,108 @@ void find_seam(int *energy, int *seam, int rows, int cols)
     }
     seam[row] = cur_col;
 
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam finding Time: %lf.\n", compute_time);
 }
+
 
 /*
  * Remove seam from the image.
  */
+
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
-    cout << "removing seam" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
+    for (int row = 0; row < rows; row++) {
+        int col_to_remove = seam[row];
+        for (int col = 0; col < cols; col++) {
+
+            int prev_index = row * cols + col;
+            int prev_index3 = prev_index * 3;
+
+            int new_index = row * (cols-1) + col;
+            int new_index3 = new_index * 3;
+
+            if (col > col_to_remove) {
+
+                int out_index = new_index - 1;
+                int out_index3 = out_index * 3;
+
+                outImage[out_index3] = outImage[prev_index3];
+                outImage[out_index3 + 1] = outImage[prev_index3 + 1];
+                outImage[out_index3 + 2] = outImage[prev_index3 + 2];
+
+            } else if (col < col_to_remove) {
+
+                outImage[new_index3] = outImage[prev_index3];
+                outImage[new_index3 + 1] = outImage[prev_index3 + 1];
+                outImage[new_index3 + 2] = outImage[prev_index3 + 2];
+
+            }
+        }
+    }
+
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("Seam removal Time: %lf.\n", compute_time);
+}
+
+
+
+/*
+ * Draw seam on the image.
+ */
+/*
+void draw_seam(uint8_t *outImage, int *seam, int rows, int cols)
+{
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
         for (int col = 0; col < cols; col++) {
             int index = row * cols + col;
             int index3 = index * 3;
             if (col > col_to_remove) {
-                int out_index = index - 1;
-                int out_index3 = out_index * 3;
-                outImage[out_index3] = outImage[index3];
-                outImage[out_index3 + 1] = outImage[index3 + 1];
-                outImage[out_index3 + 2] = outImage[index3 + 2];
-            } else if (col < col_to_remove) {
-                outImage[index3] = outImage[index3];
-                outImage[index3 + 1] = outImage[index3 + 1];
-                outImage[index3 + 2] = outImage[index3 + 2];
+                outImage[index3] = 255;
+                outImage[index3 + 1] = 0;
+                outImage[index3 + 2] = 0;
             }
         }
     }
 }
+*/
 
 void calculate_ACM(int *energy, int rows, int cols) {
         
-    cout << "Generating ACM" << endl;
+    auto compute_start = Clock::now();
+    double compute_time = 0;
 
     for (int row = 2; row < rows; row++) {
+
         for (int col = 1; col < cols; col++) {
+
             int up = energy[(row-1) * cols + col];
+
             if (col == 1) {
+
                 int upright = energy[(row-1) * cols + (col+1)];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, upright);
+
             } else if (col == cols - 2){
+
                 int upleft = energy[(row-1) * cols + col-1];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, upleft);
+
             } else {
+
                 int upright = energy[(row-1) * cols + (col+1)];
                 int upleft = energy[(row-1) * cols + (col-1)];
                 energy[row * cols + col] = energy[row * cols + col] + min(up, min(upleft, upright));
+
             }
         }
     }
+    compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
+    printf("ACM generation Time: %lf.\n", compute_time);
 }
 
 
@@ -227,10 +293,6 @@ void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, 
 
 int main(int argc, const char *argv[])
 {
-  using namespace std::chrono;
-  typedef std::chrono::high_resolution_clock Clock;
-  typedef std::chrono::duration<double> dsec;
-
   auto init_start = Clock::now();
   double init_time = 0;
  
@@ -239,24 +301,12 @@ int main(int argc, const char *argv[])
 
   /* You'll want to use these parameters in your algorithm */
   const char *input_filename = get_option_string("-f", NULL);
-  int cols = get_option_int("-w", -1);
-  int rows = get_option_int("-h", -1);
   int seam_count = get_option_int("-s", -1);
   int num_of_threads = get_option_int("-n", 1);
   int error = 0;
 
   if (input_filename == NULL) {
     printf("Error: You need to specify -f.\n");
-    error = 1;
-  }
-
-  if (cols == -1) {
-    printf("Error: You need to specify -w.\n");
-    error = 1;
-  }
-
-  if (rows == -1) {
-    printf("Error: You need to specify -h.\n");
     error = 1;
   }
 
@@ -279,21 +329,22 @@ int main(int argc, const char *argv[])
     return -1;
   }
 
+  int r, g, b;
+  int index = 0;
+  int rows, cols;
+  fscanf(input, "%d %d\n", &cols, &rows);
+
   int img_size = rows * cols * 3;
 
   uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
-  //(void)image;
   int *energy = (int *)calloc(cols * rows, sizeof(int));
   int *seam = (int *)calloc(rows, sizeof(int));
- 
-  uint8_t r, g, b;
-  int index = 0;
+
   while (fscanf(input, "%d %d %d\n", &r, &g, &b) != EOF) {
     /* PARSE THE INPUT FILE HERE */
-    image[index] = r;
-    image[index] = g;
-    image[index] = b;
-    index++;
+    image[index] = (uint8_t)r; index++;
+    image[index] = (uint8_t)g; index++;
+    image[index] = (uint8_t)b; index++;
   }
 
   init_time += duration_cast<dsec>(Clock::now() - init_start).count();
@@ -339,11 +390,12 @@ int main(int argc, const char *argv[])
   int new_width = cols - seam_count;
   // output information here
   fprintf(outFile,"%d %d\n", new_width, rows);
+  
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < new_width; col++) {
       int index = row * new_width + col;
       int index3 = index * 3;
-      fprintf(outFile,"%d %d %d\n", image[index3], image[index3+1], image[index3+2]);
+      fprintf(outFile,"%d %d %d\n", (int)image[index3], (int)image[index3+1], (int)image[index3+2]);
     }
   }
 
