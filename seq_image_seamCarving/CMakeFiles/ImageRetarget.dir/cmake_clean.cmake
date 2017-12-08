@@ -1,6 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o"
-  "CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o"
+  "CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o"
   "ImageRetarget.pdb"
   "ImageRetarget"
 )

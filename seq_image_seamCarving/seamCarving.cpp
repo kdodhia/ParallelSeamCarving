@@ -13,7 +13,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <sys/time.h>
 
-#include <compute_energy_entropy.h>
 
 using namespace std;
 using namespace cv;
@@ -21,8 +20,6 @@ using namespace cv;
 
 typedef unsigned long long timestamp_t;
 void calculate_energy(Mat greyImg, int *energy, int rows, int cols);
-extern void get_entropy_map(int *image_gray, float *entropy_map, 
-                            int width, int height)
 Mat reduce_image(Mat image,  int v, int h);
 void calculate_ACM(int *energy, int rows, int cols);
 void find_seam(int *energy, int *seam, int rows, int cols);
@@ -112,7 +109,7 @@ void find_seam(int *energy, int *seam, int rows, int cols)
     int min_col = -1;
     int inf = 100000;
 
-    for (int col = 0; col < cols-1; col++) {
+    for (int col = 1; col < cols-1; col++) {
         int cur = energy[(rows-1) * cols + col];
         if (cur < min_val || min_col == -1 ) {
             min_val = cur;

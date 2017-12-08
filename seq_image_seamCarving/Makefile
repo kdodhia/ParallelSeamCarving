@@ -123,59 +123,32 @@ ImageRetarget/fast:
 	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/build
 .PHONY : ImageRetarget/fast
 
-compute_energy_entropy.o: compute_energy_entropy.cpp.o
+seamCarving.o: seamCarving.cpp.o
 
-.PHONY : compute_energy_entropy.o
-
-# target to build an object file
-compute_energy_entropy.cpp.o:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.o
-.PHONY : compute_energy_entropy.cpp.o
-
-compute_energy_entropy.i: compute_energy_entropy.cpp.i
-
-.PHONY : compute_energy_entropy.i
-
-# target to preprocess a source file
-compute_energy_entropy.cpp.i:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.i
-.PHONY : compute_energy_entropy.cpp.i
-
-compute_energy_entropy.s: compute_energy_entropy.cpp.s
-
-.PHONY : compute_energy_entropy.s
-
-# target to generate assembly for a file
-compute_energy_entropy.cpp.s:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/compute_energy_entropy.cpp.s
-.PHONY : compute_energy_entropy.cpp.s
-
-seamCarving_entropy.o: seamCarving_entropy.cpp.o
-
-.PHONY : seamCarving_entropy.o
+.PHONY : seamCarving.o
 
 # target to build an object file
-seamCarving_entropy.cpp.o:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.o
-.PHONY : seamCarving_entropy.cpp.o
+seamCarving.cpp.o:
+	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving.cpp.o
+.PHONY : seamCarving.cpp.o
 
-seamCarving_entropy.i: seamCarving_entropy.cpp.i
+seamCarving.i: seamCarving.cpp.i
 
-.PHONY : seamCarving_entropy.i
+.PHONY : seamCarving.i
 
 # target to preprocess a source file
-seamCarving_entropy.cpp.i:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.i
-.PHONY : seamCarving_entropy.cpp.i
+seamCarving.cpp.i:
+	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving.cpp.i
+.PHONY : seamCarving.cpp.i
 
-seamCarving_entropy.s: seamCarving_entropy.cpp.s
+seamCarving.s: seamCarving.cpp.s
 
-.PHONY : seamCarving_entropy.s
+.PHONY : seamCarving.s
 
 # target to generate assembly for a file
-seamCarving_entropy.cpp.s:
-	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving_entropy.cpp.s
-.PHONY : seamCarving_entropy.cpp.s
+seamCarving.cpp.s:
+	$(MAKE) -f CMakeFiles/ImageRetarget.dir/build.make CMakeFiles/ImageRetarget.dir/seamCarving.cpp.s
+.PHONY : seamCarving.cpp.s
 
 # Help Target
 help:
@@ -186,12 +159,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... ImageRetarget"
-	@echo "... compute_energy_entropy.o"
-	@echo "... compute_energy_entropy.i"
-	@echo "... compute_energy_entropy.s"
-	@echo "... seamCarving_entropy.o"
-	@echo "... seamCarving_entropy.i"
-	@echo "... seamCarving_entropy.s"
+	@echo "... seamCarving.o"
+	@echo "... seamCarving.i"
+	@echo "... seamCarving.s"
 .PHONY : help
 
 
