@@ -6,7 +6,7 @@
 
 int main(int argc, const char *argv[])
 {
-    const char *imageName = "image_rgb.txt";
+    const char *imageName = "outputImg.txt";
     FILE *inputImageFile = fopen(imageName, "r");
 
     if (!inputImageFile) {

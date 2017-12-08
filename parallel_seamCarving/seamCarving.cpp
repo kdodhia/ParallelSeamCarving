@@ -67,13 +67,14 @@ static void show_help(const char *program_path)
 
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols){
     cout << "generating energy matrix" << endl;
+    int inf = 10000;
     
     for(int col = 0; col < cols; col++){
         for(int row = 0; row < rows; row++){
             int energy_val;
             
             if (row == rows - 1|| col == cols - 1 || col == 0 || row == 0){
-                energy_val = 10000000;
+                energy_val = inf;
             } else {
 
                 int rUp = image[GET_INDEX(row - 1, col, cols)];
@@ -113,20 +114,19 @@ void find_seam(int *energy, int *seam, int rows, int cols)
     int min_col = -1;
     int inf = 100000;
 
-    for (int col = 0; col < cols-1; col++) {
+    for (int col = 1; col < cols-1; col++) {
         int cur = energy[(rows-1) * cols + col];
         if (cur < min_val || min_col == -1 ) {
             min_val = cur;
             min_col = col;
         }
     }
-    ofstream myfile;
-    myfile.open ("seam.txt");
+
     int cur_col = min_col;
     int row;
+
     for (row = rows-1; row > 0; row--) {
         seam[row] = cur_col;
-        myfile << cur_col << "\n";
         
         int  upleft, upright;
         if (cur_col > 1) {
@@ -152,14 +152,13 @@ void find_seam(int *energy, int *seam, int rows, int cols)
         }
     }
     seam[row] = cur_col;
-    myfile.close();
 }
 
 
 /*
  * Remove seam from the image.
  */
-/*
+
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
     cout << "removing seam" << endl;
@@ -167,28 +166,39 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
     for (int row = 0; row < rows; row++) {
         int col_to_remove = seam[row];
         for (int col = 0; col < cols; col++) {
-            int index = row * cols + col;
-            int index3 = index * 3;
+
+            int prev_index = row * cols + col;
+            int prev_index3 = prev_index * 3;
+
+            int new_index = row * (cols-1) + col;
+            int new_index3 = new_index * 3;
+
             if (col > col_to_remove) {
-                int out_index = index - 1;
+
+                int out_index = new_index - 1;
                 int out_index3 = out_index * 3;
-                outImage[out_index3] = outImage[index3];
-                outImage[out_index3 + 1] = outImage[index3 + 1];
-                outImage[out_index3 + 2] = outImage[index3 + 2];
+
+                outImage[out_index3] = outImage[prev_index3];
+                outImage[out_index3 + 1] = outImage[prev_index3 + 1];
+                outImage[out_index3 + 2] = outImage[prev_index3 + 2];
+
             } else if (col < col_to_remove) {
-                outImage[index3] = outImage[index3];
-                outImage[index3 + 1] = outImage[index3 + 1];
-                outImage[index3 + 2] = outImage[index3 + 2];
+
+                outImage[new_index3] = outImage[prev_index3];
+                outImage[new_index3 + 1] = outImage[prev_index3 + 1];
+                outImage[new_index3 + 2] = outImage[prev_index3 + 2];
+
             }
         }
     }
 }
-*/
+
 
 
 /*
  * Remove seam from the image.
  */
+/*
 void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
 {
     cout << "removing seam" << endl;
@@ -206,6 +216,7 @@ void remove_seam(uint8_t *outImage, int *seam, int rows, int cols)
         }
     }
 }
+*/
 
 void calculate_ACM(int *energy, int rows, int cols) {
         
@@ -248,9 +259,9 @@ void reduce_image(uint8_t *reducedImg, int *energy, int *seam, int v, int rows, 
 
         find_seam(energy, seam, rows, cols);
 
-        //remove_seam(reducedImg, seam, rows, cols);
+        remove_seam(reducedImg, seam, rows, cols);
 
-        //cols--;
+        cols--;
     }
 }
 
@@ -268,24 +279,12 @@ int main(int argc, const char *argv[])
 
   /* You'll want to use these parameters in your algorithm */
   const char *input_filename = get_option_string("-f", NULL);
-  int cols = get_option_int("-w", -1);
-  int rows = get_option_int("-h", -1);
   int seam_count = get_option_int("-s", -1);
   int num_of_threads = get_option_int("-n", 1);
   int error = 0;
 
   if (input_filename == NULL) {
     printf("Error: You need to specify -f.\n");
-    error = 1;
-  }
-
-  if (cols == -1) {
-    printf("Error: You need to specify -w.\n");
-    error = 1;
-  }
-
-  if (rows == -1) {
-    printf("Error: You need to specify -h.\n");
     error = 1;
   }
 
@@ -308,20 +307,22 @@ int main(int argc, const char *argv[])
     return -1;
   }
 
+  int r, g, b;
+  int index = 0;
+  int rows, cols;
+  fscanf(input, "%d %d\n", &cols, &rows);
+
   int img_size = rows * cols * 3;
 
   uint8_t *image = (uint8_t *)calloc(img_size, sizeof(uint8_t));
-  //(void)image;
   int *energy = (int *)calloc(cols * rows, sizeof(int));
   int *seam = (int *)calloc(rows, sizeof(int));
- 
-  uint8_t r, g, b;
-  int index = 0;
+
   while (fscanf(input, "%d %d %d\n", &r, &g, &b) != EOF) {
     /* PARSE THE INPUT FILE HERE */
-    image[index++] = r;
-    image[index++] = g;
-    image[index++] = b;
+    image[index] = (uint8_t)r; index++;
+    image[index] = (uint8_t)g; index++;
+    image[index] = (uint8_t)b; index++;
   }
 
   init_time += duration_cast<dsec>(Clock::now() - init_start).count();
@@ -347,9 +348,9 @@ int main(int argc, const char *argv[])
      * You should really implement as much of this (if not all of it) in
      * helper functions. */
      //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
-    //reduce_image(image, energy, seam, seam_count, rows, cols);
+    reduce_image(image, energy, seam, seam_count, rows, cols);
   }
-  reduce_image(image, energy, seam, seam_count, rows, cols);
+
   compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
   printf("Computation Time: %lf.\n", compute_time);
   printf("Total time: %1f.\n", compute_time + init_time);
@@ -364,9 +365,10 @@ int main(int argc, const char *argv[])
     printf("Error: couldn't output image file");
     return -1;
   }
-  int new_width = cols; //- seam_count;
+  int new_width = cols - seam_count;
   // output information here
   fprintf(outFile,"%d %d\n", new_width, rows);
+  
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < new_width; col++) {
       int index = row * new_width + col;
