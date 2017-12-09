@@ -6,7 +6,7 @@
 
 int main(int argc, const char *argv[])
 {
-  const char *filename = "image.png";
+  const char *filename = "image4.png";
   FILE *outputImageFile = fopen("image_rgb.txt", "w");
   if (!outputImageFile) return -1;
 

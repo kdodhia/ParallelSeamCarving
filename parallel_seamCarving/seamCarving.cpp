@@ -82,10 +82,9 @@ static void show_help(const char *program_path)
 void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int cols){
 
     int inf = 10000;
-    int rnad = 0;
     
-    for(int col = 0; col < cols; col++){
-        for(int row = 0; row < rows; row++){
+    for(int row = 0; row < rows; row++){
+        for(int col = 0; col < cols; col++){
             int energy_val;
             int dir_val;
             
@@ -119,15 +118,14 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
                 
                 double gray_dx = 0.21 * rdx + 0.72 * gdx + 0.07 * bdx;
                 double gray_dy = 0.21 * rdy + 0.72 * gdy + 0.07 * bdy;
+
+                //double gray_dx = rdx +  gdx + bdx;
+                //double gray_dy =  rdy + gdy + bdy;
+
                 double val = gray_dy/gray_dx;
                 double angle = static_cast<double>((atan(val) * 180/PI + 270)); 
                 
-                /*
-                if (angle < 200) {
-                  if (rnad == 0) printf("FUCK\n");
-                  rnad++;
-                }
-                */
+    
                 if (angle < 240) { 
                   dir_val = -1;
                 } else if (angle > 300) {
@@ -158,16 +156,17 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
     int row = 0;
 
     //priority lists
-    
-    //int plist_straight[5] {0, 1, -1, 2, -2};
-    //int plist_left[5] {-1, 0, -2, 1, -3};
-    //int plist_right[5] {1, 0, 2, -1, 3};
-
+    /*
+    int plist_straight[5] {0, 1, -1, 2, -2};
+    int plist_left[5] {-1, 0, -2, 1, -3};
+    int plist_right[5] {1, 0, 2, -1, 3};
+    */
 
     int plist_straight[5] {0, 1, -1};
     int plist_left[5] {-1, 0, 1};
     int plist_right[5] {1, 0, -1};
-    int num_priorities = 3;
+    
+    int num_priorities = 5;
 
     int rand_order[cols-1];
 
@@ -278,7 +277,6 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
 
     sort(seam_energy, seam_energy + (seams_found), compare);
 
-
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
           int index = row * cols + col;
@@ -378,11 +376,13 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
    double seam_finding_time = 0;
    double seam_removal_time = 0;
 
-   int batch_size = 25;
+   int batch_size = 50;
 
    char *dir_map = (char *)calloc(rows * cols, sizeof(char));
    int *seams = (int *)calloc(rows * cols, sizeof(int));
    seam_idx_t *seam_energy = (seam_idx_t *)calloc(cols, sizeof(seam_idx_t));
+
+   
 
    for (int i = 0; i < v; i += batch_size) {
 
@@ -415,8 +415,24 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
 
       cols -= cur_size;
    }
+   /*
+    auto now = Clock::now();    
+    calculate_energy(reducedImg, dir_map, energy, rows, cols);
+    energy_compute_time += duration_cast<dsec>(Clock::now() - now).count();
 
-   //draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found); 
+    now = Clock::now();
+    int seams_found = find_seams(energy, dir_map, seams, seam_energy, rows, cols);
+    seam_finding_time += duration_cast<dsec>(Clock::now() - now).count();
+
+    printf("seams found: %d\n", seams_found);
+    if (seams_found < v) {
+        printf("Error! Not enough seams found\n");
+    return cols;
+    }
+    now = Clock::now();
+    draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found); 
+    seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
+    */
 
    printf("Total energy calculation Time: %lf.\n", energy_compute_time);
    printf("Total seam finding Time: %lf.\n", seam_finding_time);
