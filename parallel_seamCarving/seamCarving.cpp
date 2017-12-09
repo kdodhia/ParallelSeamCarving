@@ -33,7 +33,7 @@ int reduce_image(uint8_t *image, int seam_count, int rows, int cols);
 void remove_seam(uint8_t *outImage, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, char *temp, int rows, int cols, int v, int seams_found);
 int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols);
 bool bound_check(int row, int col, int rows, int cols);
-void draw_seam(uint8_t *outImage, int *seams, int *seam_energy, int rows, int cols, int seams_found);
+void draw_seam(uint8_t *outImage, int *seams, seam_idx_t *seam_energy, int rows, int cols, int seams_found);
 bool compareByLength(const seam_idx_t &a, const seam_idx_t &b);
 
 
@@ -250,7 +250,16 @@ bool compare(const seam_idx_t &a, const seam_idx_t &b)
 void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, char *temp, int rows, int cols, int v, int seams_found)
 {   
 
-    sort(seam_energy, seam_energy + (seams_found) * sizeof(seam_idx_t), compare);
+
+    sort(seam_energy, seam_energy + (seams_found), compare);
+
+
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+          int index = row * cols + col;
+          temp[index] = 0;
+      }
+    }
 
     for (int i = 0; i < seams_found && i < v; i++) {
 
@@ -265,14 +274,16 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
               if (col == col_to_remove) {
                   temp[index] = 1;
               } else {
-                  temp[index] = 0;
+                  if (temp[index] != 1) temp[index] = 0;
               }
           }
       }
     } 
 
+    
     for (int row = 0; row < rows; row++){
          int offset = 0;
+        //int counter = 0;
         for (int col = 0; col < cols; col++) {
 
             int index = row * cols + col;
@@ -285,7 +296,7 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
 
                 int index = row * cols + col;
                 int index3 = index*3;
-                int new_index = row * (cols-offset) + col-offset;
+                int new_index = row * (cols-v) + col-offset;
                 int new_index3 = new_index * 3; 
 
                 image_temp[new_index3] = image[index3];
@@ -298,7 +309,6 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
     int new_width = cols-v;
 
     memcpy(image, image_temp, sizeof(uint8_t) * new_width * rows * 3);
-
 }
 
 
@@ -307,27 +317,27 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
  * Draw seam on the image.
  */
 
-void draw_seam(uint8_t *outImage, int *seams, int *seam_energy, int rows, int cols, int seams_found)
+void draw_seam(uint8_t *outImage, int *seams, seam_idx_t *seam_energy, int rows, int cols, int seams_found)
 {
-    for (int seam = 0; seam < cols; seam++) {
-        
-        if (seam_energy[seam] == 0 || seam_energy[seam] == -1) continue;
+     for (int i = 0; i < seams_found; i++) {
+
+        int start_col = seam_energy[i].index;
 
         for (int row = 0; row < rows; row++) {
 
-          int col_to_remove = seams[seam * rows + row];
+            int col_to_remove = seams[start_col * rows + row];
 
-          for (int col = 0; col < cols; col++) {
-              int index = row * cols + col;
-              int index3 = index * 3;
-              if (col == col_to_remove) {
-                  outImage[index3] = 255;
-                  outImage[index3 + 1] = 0;
-                  outImage[index3 + 2] = 0;
-              }
-          }
+            for (int col = 0; col < cols; col++) {
+                int index = row * cols + col;
+                int index3 = index*3;
+                if (col == col_to_remove) {
+                    outImage[index3] = 255;
+                    outImage[index3 + 1] = 0;
+                    outImage[index3 + 2] = 0;
+                }
+            }
         }
-    }
+    } 
 }
 
 
@@ -356,12 +366,12 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
       return 0;
     }
 
-   //now = Clock::now();
-   //remove_seam(reducedImg, image_temp, seams, seam_energy, dir_map, rows, cols, v, seams_found);
-   //seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
+   now = Clock::now();
+   remove_seam(reducedImg, image_temp, seams, seam_energy, dir_map, rows, cols, v, seams_found);
+   seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
 
-   draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found);   
-
+   //draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found); 
+   //return 0;
    printf("Total energy calculation Time: %lf.\n", energy_compute_time);
    printf("Total seam finding Time: %lf.\n", seam_finding_time);
    printf("Total seam removal Time: %lf.\n", seam_removal_time);
