@@ -7,10 +7,11 @@
 #include <cstring>
 #include <algorithm>
 #include <omp.h>
+#include <limits.h>
 #include "mic.h"
 
 #define GET_INDEX(x,y,w) (x * w + y)*3
-
+#define GRAY_SCALE(r,g,b) (0.21 * r + 0.71 * g + 0.08 * b) 
 #define PI 3.14159265
 
 using namespace std;
@@ -30,7 +31,7 @@ typedef std::chrono::duration<double> dsec;
 extern void  png_to_text(const char *filename);
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols);
 int reduce_image(uint8_t *image, int seam_count, int rows, int cols);
-void remove_seam(uint8_t *outImage, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, char *temp, int rows, int cols, int v, int seams_found);
+void remove_seam(uint8_t *outImage, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, int rows, int cols, int v, int seams_found);
 int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols);
 bool bound_check(int row, int col, int rows, int cols);
 void draw_seam(uint8_t *outImage, int *seams, seam_idx_t *seam_energy, int rows, int cols, int seams_found);
@@ -83,6 +84,7 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
 
     int inf = 10000;
     
+    #pragma omp parallel for
     for(int row = 0; row < rows; row++){
         for(int col = 0; col < cols; col++){
             int energy_val;
@@ -93,39 +95,37 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
                 dir_val = 2;
             } else {
 
-                int rUp = image[GET_INDEX(row - 1, col, cols)];
-                int rDown = image[GET_INDEX(row + 1, col, cols)];
+                // only looking at dx to improve cache hits
+                // output same/better than when we looked at dx+dy
+
+
+                //int rUp = image[GET_INDEX(row - 1, col, cols)];
+                //int rDown = image[GET_INDEX(row + 1, col, cols)];
                 int rLeft = image[GET_INDEX(row, col - 1, cols)];
                 int rRight = image[GET_INDEX(row, col + 1, cols)];
 
-                int gUp = image[GET_INDEX(row - 1, col, cols) + 1];
-                int gDown = image[GET_INDEX(row + 1, col, cols) + 1];
+                //int gUp = image[GET_INDEX(row - 1, col, cols) + 1];
+                //int gDown = image[GET_INDEX(row + 1, col, cols) + 1];
                 int gLeft = image[GET_INDEX(row, col - 1, cols) + 1];
                 int gRight = image[GET_INDEX(row, col + 1, cols) + 1];
 
-                int bUp = image[GET_INDEX(row - 1, col, cols) + 2];
-                int bDown = image[GET_INDEX(row + 1, col, cols) + 2];
+                //int bUp = image[GET_INDEX(row - 1, col, cols) + 2];
+                //int bDown = image[GET_INDEX(row + 1, col, cols) + 2];
                 int bLeft = image[GET_INDEX(row, col - 1, cols) + 2];
                 int bRight = image[GET_INDEX(row, col + 1, cols) + 2];
 
-                int rdx = (rRight - rLeft);
-                int gdx = (gRight - gLeft);
-                int bdx = (bRight - bLeft);
-                int rdy = (rDown - rUp);
-                int gdy = (gDown - gUp);
-                int bdy = (bDown - bUp);
+                //double grayUp = GRAY_SCALE(rUp, gUp, bUp);
+                //double grayDown = GRAY_SCALE(rDown, gDown, bDown);
+                double grayRight = GRAY_SCALE(rRight, gRight, bRight);
+                double grayLeft = GRAY_SCALE(rLeft, gLeft, bLeft);
 
-                
-                double gray_dx = 0.21 * rdx + 0.72 * gdx + 0.07 * bdx;
-                double gray_dy = 0.21 * rdy + 0.72 * gdy + 0.07 * bdy;
+                double gray_dx = grayRight - grayLeft;
+                //double gray_dy = -(grayDown - grayUp);
 
-                //double gray_dx = rdx +  gdx + bdx;
-                //double gray_dy =  rdy + gdy + bdy;
-
-                double val = gray_dy/gray_dx;
+                //double val = gray_dy/gray_dx;
+                double val = gray_dx;
                 double angle = static_cast<double>((atan(val) * 180/PI + 270)); 
                 
-    
                 if (angle < 240) { 
                   dir_val = -1;
                 } else if (angle > 300) {
@@ -133,7 +133,8 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
                 } else {
                   dir_val = 0;
                 }
-                energy_val = abs(rdx) + abs(gdx) + abs(bdx) + abs(rdy) + abs(gdy) + abs(bdy);
+                energy_val = abs(gray_dx);
+                //energy_val = abs(gray_dx) + abs(gray_dy);
             }
             energy[row * cols + col] = energy_val;
             dir_map[row * cols +col] = dir_val;
@@ -149,63 +150,91 @@ bool bound_check(int row, int col, int rows, int cols) {
     return true;
 }
 
-
 int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols)
 {   
-    int cur_energy = 0;
-    int row = 0;
 
     //priority lists
     /*
     int plist_straight[5] {0, 1, -1, 2, -2};
     int plist_left[5] {-1, 0, -2, 1, -3};
     int plist_right[5] {1, 0, 2, -1, 3};
-    */
+    */    
 
-    int plist_straight[5] {0, 1, -1};
-    int plist_left[5] {-1, 0, 1};
-    int plist_right[5] {1, 0, -1};
+    int plist_straight[3] {0, 1, -1};
+    int plist_left[3] {-1, 0, 1};
+    int plist_right[3] {1, 0, -1};
     
-    int num_priorities = 5;
+    int num_priorities = 3;
 
     int rand_order[cols-1];
-
     for (int i = 1; i < cols; i++){
         rand_order[i] = i;
     }
 
+    // randomize the start cols
     random_shuffle(&rand_order[0], &rand_order[cols-1]);
+
+    // the random_shuffle seams to give broken output at times
+    // this check is there to make sure a seg fault does not occur
+    bool correct_random_funct = true;
+    for (int i = 1; i < cols; i++){
+        if (rand_order[i] > cols-1) {
+            correct_random_funct = false;
+        }
+    }
+
+    if (!correct_random_funct) {
+       printf("Incorrect random list.\n");
+       return 0;
+    }
 
     int count = 0;
 
+    int seam_col, col, cur_energy, row, dir;
+    
+    int NITEMS = rows*cols;
+    omp_lock_t lock[NITEMS];
+
+    for (int i=0; i<NITEMS; i++)
+        omp_init_lock(&(lock[i]));
+
+    #pragma omp parallel for private(seam_col, col, cur_energy, row, dir) 
     for (int i = 1; i < cols; i+=1){
 
-        int seam_col = rand_order[i];
-        int col = seam_col; 
+        seam_col = rand_order[i];
+        
+        col = seam_col; 
+        cur_energy = 0;
+        
+        dir = dir_map[col];
+        seams[seam_col * rows] = col;
 
-        for (int row = 0; row < rows - 2; row++){
+        for (row = 0; row < rows - 2; row++){
 
-            seams[seam_col * rows + row] = col;
             cur_energy += energy[row * cols + col];
-
-            int dir = dir_map[row * cols + col];
-            // mark as visited
-            dir_map[row * cols + col] = 2;
 
             int temp_col;
 
             if (dir == 0) {
                 bool found = false;
-                //priority list of len 5
+                //priority list of len 3
                 for (int i = 0; i < num_priorities; i++) {
                   temp_col = col + plist_straight[i];
                   if (bound_check((row+1), temp_col, rows, cols)) {
+                    int index = (row+1) * cols + temp_col;
+                    
                     //check if already used by another seam
-                    if (dir_map[(row+1) * cols + temp_col] != 2) {
-                      found = true;
-                      col = temp_col;
-                      break;
-                    }
+                    omp_set_lock(&(lock[index]));
+                    if (dir_map[index] != 2) {
+                        dir = dir_map[index];
+                        dir_map[index] = 2;
+                        omp_unset_lock(&(lock[index]));
+                        found = true;
+                        col = temp_col;
+                        seams[seam_col * rows + (row+1)] = col;
+                        break;
+                    }    
+                    omp_unset_lock(&(lock[index]));
                   }
                 }
                 if (!found) {
@@ -214,17 +243,27 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
                 }
 
             }else if(dir == -1) {
+
                 bool found = false;
-                //priority list of len 5
+                //priority list of len 3
                 for (int i = 0; i < num_priorities; i++) {
                   temp_col = col + plist_left[i];
                   if (bound_check((row+1), temp_col, rows, cols)) {
+                    //printf("6\n");
+                    int index = (row+1) * cols + temp_col;
+                    
                     //check if already used by another seam
-                    if (dir_map[(row+1) * cols + temp_col] != 2) {
-                      found = true;
-                      col = temp_col;
-                      break;
-                    }
+                    omp_set_lock(&(lock[index]));
+                    if (dir_map[index] != 2) {
+                        dir = dir_map[index];
+                        dir_map[index] = 2;
+                        omp_unset_lock(&(lock[index]));
+                        found = true;
+                        col = temp_col;
+                        seams[seam_col * rows + (row+1)] = col;
+                        break;
+                    }    
+                    omp_unset_lock(&(lock[index]));
                   }
                 }
                 if (!found) {
@@ -233,18 +272,29 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
                 }
 
             } else {
+
               // dir = 1
                 bool found = false;
-                //priority list of len 5
+                //priority list of len 3
                 for (int i = 0; i < num_priorities; i++) {
                   temp_col = col + plist_right[i];
                   if (bound_check((row+1), temp_col, rows, cols)) {
+                    //printf("7\n");
+                    int index = (row+1) * cols + temp_col;
+                    
                     //check if already used by another seam
-                    if (dir_map[(row+1) * cols + temp_col] != 2) {
-                      found = true;
-                      col = temp_col;
-                      break;
-                    }
+                    omp_set_lock(&(lock[index]));
+                    if (dir_map[index] != 2) {
+                        dir = dir_map[index];
+                        dir_map[index] = 2;
+                        omp_unset_lock(&(lock[index]));
+                        found = true;
+                        col = temp_col;
+                        seams[seam_col * rows + (row+1)] = col;
+                        break;
+                    }    
+                    omp_unset_lock(&(lock[index]));
+
                   }
                 }
                 if (!found) {
@@ -253,15 +303,25 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
                 }
             }
         }
-        seams[seam_col * rows + row] = col;
+
         if (cur_energy != -1) {
-          seam_energy[count].index = seam_col;
-          seam_energy[count].energy = cur_energy;
-          count++;
+            seam_energy[count].index = seam_col;
+            seam_energy[count].energy = cur_energy;
+            #pragma omp atomic 
+            count++;
+        } else {
+            seam_energy[seam_col].index = seam_col;
+            seam_energy[seam_col].energy = INT_MAX;
         }
     }
+
+    for (int i=0; i<NITEMS; i++)
+        omp_destroy_lock(&(lock[i]));
+
     return count;
 }
+
+
 
 bool compare(const seam_idx_t &a, const seam_idx_t &b)
 {
@@ -271,23 +331,19 @@ bool compare(const seam_idx_t &a, const seam_idx_t &b)
 /*
  * Remove seam from the image.
  */
-void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, char *temp, int rows, int cols, int batch_size, int seams_found)
+void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, int rows, int cols, int batch_size, int seams_found)
 {   
 
 
     sort(seam_energy, seam_energy + (seams_found), compare);
 
-    for (int row = 0; row < rows; row++) {
-      for (int col = 0; col < cols; col++) {
-          int index = row * cols + col;
-          temp[index] = 0;
-      }
-    }
+    char temp[rows*cols] = {0};
 
     for (int i = 0; i < seams_found && i < batch_size; i++) {
 
         int start_col = seam_energy[i].index;
 
+        #pragma omp parallel for
         for (int row = 0; row < rows; row++) {
 
             int col_to_remove = seams[start_col * rows + row];
@@ -308,7 +364,7 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
         }
     } 
 
-    
+    #pragma omp parallel for
     for (int row = 0; row < rows; row++){
 
          int offset = 0;
@@ -377,7 +433,6 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
    double seam_removal_time = 0;
 
    int batch_size = 50;
-
    char *dir_map = (char *)calloc(rows * cols, sizeof(char));
    int *seams = (int *)calloc(rows * cols, sizeof(int));
    seam_idx_t *seam_energy = (seam_idx_t *)calloc(cols, sizeof(seam_idx_t));
@@ -410,11 +465,12 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
       }
 
       now = Clock::now();
-      remove_seam(reducedImg, image_temp, seams, seam_energy, dir_map, rows, cols, cur_size, seams_found);
+      remove_seam(reducedImg, image_temp, seams, seam_energy, rows, cols, cur_size, seams_found);
       seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
 
       cols -= cur_size;
    }
+
    /*
     auto now = Clock::now();    
     calculate_energy(reducedImg, dir_map, energy, rows, cols);
@@ -425,15 +481,11 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
     seam_finding_time += duration_cast<dsec>(Clock::now() - now).count();
 
     printf("seams found: %d\n", seams_found);
-    if (seams_found < v) {
-        printf("Error! Not enough seams found\n");
-    return cols;
-    }
     now = Clock::now();
     draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found); 
     seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
-    */
-
+    
+*/
    printf("Total energy calculation Time: %lf.\n", energy_compute_time);
    printf("Total seam finding Time: %lf.\n", seam_finding_time);
    printf("Total seam removal Time: %lf.\n", seam_removal_time);
