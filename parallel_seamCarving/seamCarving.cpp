@@ -83,7 +83,7 @@ static void show_help(const char *program_path)
 void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int cols){
 
     int inf = 10000;
-    
+    int zero_count = 0;
     #pragma omp parallel for
     for(int row = 0; row < rows; row++){
         for(int col = 0; col < cols; col++){
@@ -134,13 +134,13 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
                   dir_val = 0;
                 }
                 energy_val = abs(gray_dx);
+                if (energy_val == 0) zero_count++;
                 //energy_val = abs(gray_dx) + abs(gray_dy);
             }
             energy[row * cols + col] = energy_val;
             dir_map[row * cols +col] = dir_val;
         }
     }
-
 }
 
 
@@ -152,6 +152,13 @@ bool bound_check(int row, int col, int rows, int cols) {
 
 int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols)
 {   
+
+    // need to reinitialize seams_energy list every time due to faulty random shuffle generator
+    #pragma omp parallel for
+    for (int i = 0; i < cols; i++) {
+        seam_energy[i].index  = i;
+        seam_energy[i].energy = INT_MAX;
+    }
 
     //priority lists
     /*
@@ -176,16 +183,11 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
 
     // the random_shuffle seams to give broken output at times
     // this check is there to make sure a seg fault does not occur
-    bool correct_random_funct = true;
     for (int i = 1; i < cols; i++){
         if (rand_order[i] > cols-1) {
-            correct_random_funct = false;
+            rand_order[i] = -1;
+            printf("Incorrect random number found.\n");
         }
-    }
-
-    if (!correct_random_funct) {
-       printf("Incorrect random list.\n");
-       return 0;
     }
 
     int count = 0;
@@ -198,13 +200,18 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
     for (int i=0; i<NITEMS; i++)
         omp_init_lock(&(lock[i]));
 
-    #pragma omp parallel for private(seam_col, col, cur_energy, row, dir) 
+    cur_energy = 0;
+
+    #pragma omp parallel for private(seam_col, col, row, dir) 
     for (int i = 1; i < cols; i+=1){
 
         seam_col = rand_order[i];
+        if (seam_col > cols-1) {
+          //ignore this one
+          continue;
+        }
         
         col = seam_col; 
-        cur_energy = 0;
         
         dir = dir_map[col];
         seams[seam_col * rows] = col;
@@ -305,14 +312,11 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
         }
 
         if (cur_energy != -1) {
-            seam_energy[count].index = seam_col;
-            seam_energy[count].energy = cur_energy;
+            seam_energy[seam_col].index = seam_col;
+            seam_energy[seam_col].energy = cur_energy;
             #pragma omp atomic 
             count++;
-        } else {
-            seam_energy[seam_col].index = seam_col;
-            seam_energy[seam_col].energy = INT_MAX;
-        }
+        } 
     }
 
     for (int i=0; i<NITEMS; i++)
@@ -335,9 +339,17 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
 {   
 
 
-    sort(seam_energy, seam_energy + (seams_found), compare);
+    sort(seam_energy, seam_energy + (cols), compare);
+/*
+    for (int i = 0; i < seams_found; i++) {
 
-    char temp[rows*cols] = {0};
+        int index = seam_energy[i].index;
+        int energy = seam_energy[i].energy;
+        printf("index: %d, energy: %d\n", index, energy);
+    }
+*/
+
+    char temp[rows*cols];
 
     for (int i = 0; i < seams_found && i < batch_size; i++) {
 
