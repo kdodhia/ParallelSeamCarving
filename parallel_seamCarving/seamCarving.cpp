@@ -30,9 +30,9 @@ typedef std::chrono::duration<double> dsec;
 
 extern void  png_to_text(const char *filename);
 void calculate_energy(uint8_t *image, int *energy, int rows, int cols);
-int reduce_image(uint8_t *image, int seam_count, int rows, int cols);
+int reduce_image(uint8_t *image, int seam_count, int rows, int cols, int num_threads);
 void remove_seam(uint8_t *outImage, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, int rows, int cols, int v, int seams_found);
-int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols);
+int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols, int num_threads);
 bool bound_check(int row, int col, int rows, int cols);
 void draw_seam(uint8_t *outImage, int *seams, seam_idx_t *seam_energy, int rows, int cols, int seams_found);
 bool compare(const seam_idx_t &a, const seam_idx_t &b);
@@ -97,7 +97,6 @@ void calculate_energy(uint8_t *image, char *dir_map, int *energy, int rows, int 
                 // only looking at dx to improve performance
                 // output same/better than when we looked at dx+dy
 
-
                 //int rUp = image[GET_INDEX(row - 1, col, cols)];
                 //int rDown = image[GET_INDEX(row + 1, col, cols)];
                 int rLeft = image[GET_INDEX(row, col - 1, cols)];
@@ -156,7 +155,12 @@ bool bound_check_2(int row, int col, int rows, int cols, int start, int end) {
 }
 
 /*
-int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols)
+The following commented out finds_seams function was our attempt to parallize using locking.
+However, we found that the extra overhead due to locking reduced speedups. Thus we decided to 
+use the blocking method found in the uncommented out find_seams method.
+*/
+/*
+int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols, int num_threads)
 {   
 
     // need to reinitialize seams_energy list every time due to faulty random shuffle generator
@@ -333,10 +337,19 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
 }
 */
 
-
-int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols)
+/*
+Finding multiple seams by splittig the image into num_threads vertical blocks. Each thread finds seams in its
+own block. The seams are not allowed to cross over into neighboring blocks, thus removing the need
+for synchonization.
+*/
+int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, int rows, int cols, int num_threads)
 {   
-
+    // need to reinitialize seams_energy list every time due to faulty random shuffle generator
+    #pragma omp parallel for
+    for (int i = 0; i < cols; i++) {
+        seam_energy[i].index  = i;
+        seam_energy[i].energy = INT_MAX;
+    }
     //priority lists
     int plist_straight[3] {0, 1, -1};
     int plist_left[3] {-1, 0, 1};
@@ -346,10 +359,9 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
 
     int count = 0;
 
-    int num_threads = 16;
     int offset = cols / num_threads;
  
-    #pragma omp parallel for  
+    #pragma omp parallel for 
     for (int thread = 0; thread < num_threads; thread++) 
     {
         int seam_col, col, cur_energy, row, dir;
@@ -360,10 +372,26 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
         } else {
           end = cols;
         }
+        int width = end-start;
+
+        int rand_order[width-1];
+
+        //#pragma omp parallel for
+        for (int i = start; i < end; i++){
+            rand_order[i-start] = i;
+        }
+
+        // randomize the start cols
+        random_shuffle(&rand_order[0], &rand_order[width-1]);
       
         for (int i = start; i < end; i+=1) {
 
-          seam_col = i;
+          seam_col = rand_order[i-start];
+          if (seam_col > end-1) {
+             //ignore this one
+             printf("Incorrect random number found.\n");
+             continue;
+          }
           col = seam_col;  
           dir = dir_map[col];
           seams[seam_col * rows] = col;
@@ -468,6 +496,7 @@ int find_seams(int *energy, char *dir_map, int *seams, seam_idx_t *seam_energy, 
 
 
 
+
 bool compare(const seam_idx_t &a, const seam_idx_t &b)
 {
     return a.energy < b.energy;
@@ -478,8 +507,6 @@ bool compare(const seam_idx_t &a, const seam_idx_t &b)
  */
 void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *seam_energy, int rows, int cols, int batch_size, int seams_found)
 {   
-
-
     sort(seam_energy, seam_energy + (cols), compare);
 
     char temp[rows*cols] = {0};
@@ -510,7 +537,7 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
             }
         }
     } 
-    int count = 0;
+
     #pragma omp parallel for
     for (int row = 0; row < rows; row++){
 
@@ -523,7 +550,7 @@ void remove_seam(uint8_t *image, uint8_t *image_temp, int *seams, seam_idx_t *se
             if (temp[index] == 1) {
 
                 offset++;
-                count++;
+
             } else {
 
                 int index = row * cols + col;
@@ -577,14 +604,14 @@ void draw_seam(uint8_t *outImage, int *seams, seam_idx_t *seam_energy, int rows,
 }
 
 
-int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *seam, int v, int rows, int cols) {
+int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *seam, int v, int rows, int cols, int num_threads) {
 
     
    double energy_compute_time = 0;
    double seam_finding_time = 0;
    double seam_removal_time = 0;
 
-   int batch_size = 30;
+   int batch_size = 50;
    char *dir_map = (char *)calloc(rows * cols, sizeof(char));
    int *seams = (int *)calloc(rows * cols, sizeof(int));
    seam_idx_t *seam_energy = (seam_idx_t *)calloc(cols, sizeof(seam_idx_t));
@@ -606,10 +633,10 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
       energy_compute_time += duration_cast<dsec>(Clock::now() - now).count();
 
       now = Clock::now();
-      int seams_found = find_seams(energy, dir_map, seams, seam_energy, rows, cols);
+      int seams_found = find_seams(energy, dir_map, seams, seam_energy, rows, cols, num_threads);
       seam_finding_time += duration_cast<dsec>(Clock::now() - now).count();
 
-      printf("seams found: %d\n", seams_found);
+      //printf("seams found: %d\n", seams_found);
       if (seams_found < cur_size) {
         printf("Error! Not enough seams found\n");
         return cols;
@@ -622,19 +649,20 @@ int reduce_image(uint8_t *reducedImg, uint8_t *image_temp, int *energy, int *sea
       cols -= cur_size;
    }
 /*
+
     auto now = Clock::now();    
     calculate_energy(reducedImg, dir_map, energy, rows, cols);
     energy_compute_time += duration_cast<dsec>(Clock::now() - now).count();
 
     now = Clock::now();
-    int seams_found = find_seams(energy, dir_map, seams, seam_energy, rows, cols);
+    int seams_found = find_seams(energy, dir_map, seams, seam_energy, rows, cols, num_threads);
     seam_finding_time += duration_cast<dsec>(Clock::now() - now).count();
 
     printf("seams found: %d\n", seams_found);
     now = Clock::now();
     draw_seam(reducedImg, seams, seam_energy, rows, cols, seams_found); 
     seam_removal_time += duration_cast<dsec>(Clock::now() - now).count();
-*/ 
+*/
    printf("Total energy calculation Time: %lf.\n", energy_compute_time);
    printf("Total seam finding Time: %lf.\n", seam_finding_time);
    printf("Total seam removal Time: %lf.\n", seam_removal_time);
@@ -728,7 +756,7 @@ int main(int argc, const char *argv[])
      //initialize_costs(costs, wires, num_of_wires, dim_x, dim_y);
     //int seams_removed = reduce_image(image, image_temp, energy, seam, seam_count, rows, cols);
   }
-  int new_width = reduce_image(image, image_temp, energy, seam, seam_count, rows, cols);
+  int new_width = reduce_image(image, image_temp, energy, seam, seam_count, rows, cols, num_of_threads);
   compute_time += duration_cast<dsec>(Clock::now() - compute_start).count();
   printf("Computation Time: %lf.\n", compute_time);
   printf("Total time: %1f.\n", compute_time + init_time);
